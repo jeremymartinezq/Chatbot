@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --accent-color: #f97316;
+            --bg-color: #f1f5f9;
+            --container-bg: #ffffff;
+            --text-color: #1e40af;
+            --message-bg-bot: #ffffff;
+            --input-bg: #f8fafc;
+            --border-color: #94a3b8;
+            --scrollbar-thumb: #94a3b8;
+            --scrollbar-track: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --container-bg: #1e293b;
+            --text-color: #f8fafc;
+            --message-bg-bot: #2d3a4f;
+            --input-bg: #334155;
+            --border-color: #475569;
+            --scrollbar-thumb: #64748b;
+            --scrollbar-track: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+            height: calc(100vh - 2rem);
+            display: flex;
+            flex-direction: column;
+            background: var(--container-bg);
+            position: relative;
+            transition: background-color 0.3s ease;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 2px solid var(--border-color);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            background-color: var(--container-bg);
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 0.75rem;
+            position: relative;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            background: var(--container-bg);
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-in-out;
+            word-wrap: break-word;
+            position: relative;
+            font-size: 1rem;
+            letter-spacing: 0.2px;
+            border-radius: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+            background-color: var(--message-bg-bot);
+            color: #e2e8f0;
+        }
+
+        [data-theme="light"] .bot-message {
+            background-color: #EBF5FF;
+            color: #2563eb;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #2563eb;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        [data-theme="dark"] .user-message {
+            background-color: #3b82f6;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: var(--container-bg);
+            gap: 0.75rem;
+            border-top: 2px solid var(--border-color);
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+        }
+
+        .toolbar-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .toolbar-icon:hover {
+            background-color: var(--input-bg);
+            color: var(--accent-color);
+        }
+
+        .input-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--input-bg);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border-color);
+        }
+
+        .input-container:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        #messageInput {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 1rem;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        #messageInput:focus {
+            outline: none;
+            text-align: left;
+        }
+
+        #messageInput::placeholder {
+            color: #64748b;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .send-button:hover {
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(0.5rem); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Language dropdown styles */
+        .language-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 5rem;
+            background: var(--container-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: none;
+            min-width: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .language-dropdown.show {
+            display: block;
+        }
+
+        .language-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            border-radius: 0.25rem;
+        }
+
+        .language-option:hover {
+            background-color: var(--input-bg);
+        }
+
+        .language-option i.fa-check {
+            opacity: 0;
+            width: 1rem;
+        }
+
+        .language-option.active i.fa-check {
+            opacity: 1;
+            color: var(--primary-color);
+        }
+
+        .language-option i.fa-globe {
+            opacity: 0.7;
+            width: 1rem;
+        }
+
+        /* Settings modal styles */
+        .settings-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--container-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            z-index: 1000;
+            display: none;
+            min-width: 300px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-modal.show {
+            display: block;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .modal-backdrop.show {
+            display: block;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        .settings-option {
+            padding: 0.75rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        /* Add styles for attachment menu */
+        .attach-menu {
+            position: absolute;
+            bottom: calc(100% + 0.5rem);
+            right: 0.75rem;
+            background: var(--container-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: none;
+            min-width: 150px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .attach-menu.show {
+            display: block;
+        }
+
+        .attach-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            border-radius: 0.25rem;
+        }
+
+        .attach-option:hover {
+            background-color: var(--input-bg);
+        }
+
+        .attach-option i {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        /* Add styles for microphone active state */
+        .toolbar-icon.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Add styles for file input */
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Chatbot</h1>
+            <div class="header-icons">
+                <button class="toolbar-icon" onclick="toggleLanguageDropdown()">
+                    <i class="fas fa-language"></i>
+                </button>
+                <button class="toolbar-icon" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="toolbar-icon" onclick="toggleSettings()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+        <div id="chatMessages" class="chat-container"></div>
+        <div class="toolbar">
+            <button class="toolbar-icon" onclick="toggleMicrophone()" id="micButton">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <div class="input-container">
+                <input type="text" id="messageInput" placeholder="Press here to talk to Assistant..." disabled>
+                <button id="sendButton" class="send-button" onclick="sendMessage()" disabled>
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+            <button class="toolbar-icon" onclick="toggleAttachMenu()" id="attachButton">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Language Dropdown -->
+    <div class="language-dropdown" id="languageDropdown">
+        <div class="language-option" onclick="changeLanguage('en')" id="lang-en">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            English
+        </div>
+        <div class="language-option" onclick="changeLanguage('es')" id="lang-es">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            Español
+        </div>
+        <div class="language-option" onclick="changeLanguage('fr')" id="lang-fr">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            Français
+        </div>
+        <div class="language-option" onclick="changeLanguage('de')" id="lang-de">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            Deutsch
+        </div>
+        <div class="language-option" onclick="changeLanguage('it')" id="lang-it">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            Italiano
+        </div>
+        <div class="language-option" onclick="changeLanguage('pt')" id="lang-pt">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            Português
+        </div>
+        <div class="language-option" onclick="changeLanguage('ru')" id="lang-ru">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            Русский
+        </div>
+        <div class="language-option" onclick="changeLanguage('zh')" id="lang-zh">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            中文
+        </div>
+        <div class="language-option" onclick="changeLanguage('ja')" id="lang-ja">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            日本語
+        </div>
+        <div class="language-option" onclick="changeLanguage('ko')" id="lang-ko">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            한국어
+        </div>
+        <div class="language-option" onclick="changeLanguage('ar')" id="lang-ar">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            العربية
+        </div>
+        <div class="language-option" onclick="changeLanguage('hi')" id="lang-hi">
+            <i class="fas fa-check"></i>
+            <i class="fas fa-globe"></i>
+            हिन्दी
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="modalBackdrop" onclick="toggleSettings()"></div>
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-header">
+            <span class="settings-title">Settings</span>
+            <button class="close-button" onclick="toggleSettings()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="settings-option">
+            <span>Clear Chat History</span>
+            <button class="toolbar-icon" onclick="clearHistory()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <div class="settings-option">
+            <span>Theme</span>
+            <button class="toolbar-icon" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add attachment menu -->
+    <div class="attach-menu" id="attachMenu">
+        <div class="attach-option" onclick="handleAttachment('image')">
+            <i class="fas fa-image"></i>
+            <span>Image</span>
+        </div>
+        <div class="attach-option" onclick="handleAttachment('file')">
+            <i class="fas fa-file"></i>
+            <span>File</span>
+        </div>
+        <div class="attach-option" onclick="handleAttachment('location')">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Location</span>
+        </div>
+    </div>
+
+    <script>
+        let isConnected = false;
+        let hasWelcomed = false;
+        let currentLanguage = 'en';
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatContainer = document.getElementById('chatMessages');
+        
+        // Clear existing messages and local storage on page load
+        localStorage.removeItem('chatHistory');
+        
+        // Language support
+        const translations = {
+            en: {
+                welcome: "Hello! How can I help you today?",
+                placeholder: "Press here to talk to Assistant...",
+                title: "Chatbot"
+            },
+            es: {
+                welcome: "¡Hola! ¿Cómo puedo ayudarte hoy?",
+                placeholder: "Presiona aquí para hablar con el Asistente...",
+                title: "Chatbot"
+            },
+            fr: {
+                welcome: "Bonjour! Comment puis-je vous aider aujourd'hui?",
+                placeholder: "Appuyez ici pour parler à l'Assistant...",
+                title: "Chatbot"
+            },
+            de: {
+                welcome: "Hallo! Wie kann ich Ihnen heute helfen?",
+                placeholder: "Hier klicken, um mit dem Assistenten zu sprechen...",
+                title: "Chatbot"
+            },
+            it: {
+                welcome: "Ciao! Come posso aiutarti oggi?",
+                placeholder: "Premi qui per parlare con l'Assistente...",
+                title: "Chatbot"
+            },
+            pt: {
+                welcome: "Olá! Como posso ajudar você hoje?",
+                placeholder: "Pressione aqui para falar com o Assistente...",
+                title: "Chatbot"
+            },
+            ru: {
+                welcome: "Здравствуйте! Как я могу помочь вам сегодня?",
+                placeholder: "Нажмите здесь, чтобы поговорить с Ассистентом...",
+                title: "Chatbot"
+            },
+            zh: {
+                welcome: "你好！今天我能帮你什么？",
+                placeholder: "点击这里与助手对话...",
+                title: "聊天机器人"
+            },
+            ja: {
+                welcome: "こんにちは！今日はどのようにお手伝いできますか？",
+                placeholder: "アシスタントと話すにはここをタップ...",
+                title: "チャットボット"
+            },
+            ko: {
+                welcome: "안녕하세요! 오늘 어떻게 도와드릴까요?",
+                placeholder: "어시스턴트와 대화하려면 여기를 누르세요...",
+                title: "챗봇"
+            },
+            ar: {
+                welcome: "مرحباً! كيف يمكنني مساعدتك اليوم؟",
+                placeholder: "اضغط هنا للتحدث مع المساعد...",
+                title: "روبوت الدردشة"
+            },
+            hi: {
+                welcome: "नमस्ते! आज मैं आपकी कैसे मदद कर सकता हूं?",
+                placeholder: "सहायक से बात करने के लिए यहां दबाएं...",
+                title: "चैटबॉट"
+            }
+        };
+
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            dropdown.classList.toggle('show');
+
+            // Update checkmarks immediately
+            updateLanguageUI();
+
+            // Handle clicks outside
+            const handleClickOutside = (e) => {
+                if (!e.target.closest('.language-dropdown') && !e.target.closest('.fa-language')) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', handleClickOutside);
+                }
+            };
+            
+            // Add the event listener after a small delay to prevent immediate closure
+            setTimeout(() => {
+                document.addEventListener('click', handleClickOutside);
+            }, 0);
+        }
+
+        function updateLanguageUI() {
+            const allOptions = document.querySelectorAll('.language-option');
+            allOptions.forEach(option => {
+                const lang = option.id.replace('lang-', '');
+                const checkIcon = option.querySelector('.fa-check');
+                if (lang === currentLanguage) {
+                    option.classList.add('active');
+                    checkIcon.style.opacity = '1';
+                } else {
+                    option.classList.remove('active');
+                    checkIcon.style.opacity = '0';
+                }
+            });
+        }
+
+        function changeLanguage(lang) {
+            if (currentLanguage === lang) return;
+            
+            currentLanguage = lang;
+            document.getElementById('languageDropdown').classList.remove('show');
+            
+            // Update UI elements
+            document.querySelector('.header h1').textContent = translations[currentLanguage].title;
+            messageInput.placeholder = translations[currentLanguage].placeholder;
+            
+            // Update language UI
+            updateLanguageUI();
+            
+            // Update speech recognition language if available
+            if (recognition) {
+                const langMap = {
+                    'en': 'en-US',
+                    'es': 'es-ES',
+                    'fr': 'fr-FR',
+                    'de': 'de-DE',
+                    'it': 'it-IT',
+                    'pt': 'pt-PT',
+                    'ru': 'ru-RU',
+                    'zh': 'zh-CN',
+                    'ja': 'ja-JP',
+                    'ko': 'ko-KR',
+                    'ar': 'ar-SA',
+                    'hi': 'hi-IN'
+                };
+                recognition.lang = langMap[lang] || 'en-US';
+            }
+
+            // Add system message about language change
+            addMessage(`Language changed to ${translations[lang].title}`, false);
+        }
+
+        function updateLanguage() {
+            document.querySelector('.header h1').textContent = translations[currentLanguage].title;
+            messageInput.placeholder = translations[currentLanguage].placeholder;
+            if (!hasWelcomed) {
+                addMessage(translations[currentLanguage].welcome, false);
+                hasWelcomed = true;
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update moon icon
+            const themeIcon = document.querySelector('.fa-moon');
+            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeIcon = document.querySelector('.fa-moon');
+            themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Modified addMessage function
+        function addMessage(text, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Check backend connection
+        async function checkConnection() {
+            try {
+                const response = await fetch('http://localhost:8000/');
+                const data = await response.json();
+                if (data.status === 'healthy') {
+                    if (!isConnected) {
+                        isConnected = true;
+                        messageInput.disabled = false;
+                        sendButton.disabled = false;
+                        
+                        if (!hasWelcomed) {
+                            addMessage(translations[currentLanguage].welcome, false);
+                            hasWelcomed = true;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                isConnected = false;
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            checkConnection();
+            updateLanguage();
+            updateLanguageUI();
+        });
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            modal.classList.toggle('show');
+            backdrop.classList.toggle('show');
+        }
+
+        function clearHistory() {
+            chatContainer.innerHTML = '';
+            hasWelcomed = false;
+            toggleSettings();
+            checkConnection();
+        }
+
+        // Add sendMessage function if it's missing
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || !isConnected) return;
+
+            // Clear input and add user message
+            messageInput.value = '';
+            addMessage(message, true);
+
+            try {
+                const response = await fetch('http://localhost:8000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: message
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, false);
+                } else {
+                    const error = await response.text();
+                    addMessage(`Error: ${error}`, false);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Error: Could not connect to the server', false);
+            }
+        }
+
+        // Add Enter key handler
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Add new variables for speech recognition
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = transcript;
+                toggleMicrophone(); // Turn off microphone after getting result
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                toggleMicrophone();
+            };
+        }
+
+        // Microphone toggle function
+        function toggleMicrophone() {
+            const micButton = document.getElementById('micButton');
+            
+            if (!recognition) {
+                addMessage("Speech recognition is not supported in this browser.", false);
+                return;
+            }
+
+            if (micButton.classList.contains('active')) {
+                recognition.stop();
+                micButton.classList.remove('active');
+            } else {
+                recognition.start();
+                micButton.classList.add('active');
+            }
+        }
+
+        // Attachment menu functions
+        function toggleAttachMenu() {
+            const menu = document.getElementById('attachMenu');
+            menu.classList.toggle('show');
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function closeMenu(e) {
+                if (!e.target.closest('.attach-menu') && !e.target.closest('#attachButton')) {
+                    menu.classList.remove('show');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }
+
+        function handleAttachment(type) {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            
+            switch(type) {
+                case 'image':
+                    fileInput.accept = 'image/*';
+                    break;
+                case 'file':
+                    fileInput.accept = '*/*';
+                    break;
+                case 'location':
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            position => {
+                                const location = `📍 Location: ${position.coords.latitude}, ${position.coords.longitude}`;
+                                messageInput.value = location;
+                                // Optionally send the message automatically
+                                sendMessage();
+                            },
+                            error => {
+                                addMessage("Could not access location: " + error.message, false);
+                            }
+                        );
+                    } else {
+                        addMessage("Geolocation is not supported in this browser.", false);
+                    }
+                    document.getElementById('attachMenu').classList.remove('show');
+                    return;
+            }
+
+            fileInput.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (file.type.startsWith('image/')) {
+                        // Create image preview
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '200px';
+                        img.style.maxHeight = '200px';
+                        img.style.borderRadius = '8px';
+                        img.style.margin = '8px 0';
+
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message user-message';
+                        messageDiv.appendChild(img);
+                        chatContainer.appendChild(messageDiv);
+                    } else {
+                        // Show file attachment message
+                        addMessage(`📎 File attached: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`, true);
+                    }
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                };
+
+                if (file.type.startsWith('image/')) {
+                    reader.readAsDataURL(file);
+                } else {
+                    reader.readAsText(file);
+                }
+            };
+
+            fileInput.click();
+            document.getElementById('attachMenu').classList.remove('show');
+        }
+    </script>
+</body>
+</html> 
