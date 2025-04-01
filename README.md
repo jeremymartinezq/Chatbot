@@ -1,4 +1,4 @@
-# AI Chatbot
+# Chatbot
 
 A modern web-based chatbot application with a Python FastAPI backend and JavaScript frontend. Features a clean, responsive UI with real-time AI responses and multilingual support.
 
