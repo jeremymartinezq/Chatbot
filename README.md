@@ -1,6 +1,6 @@
 # AI Chatbot
 
-A modern web-based chatbot application with a Python FastAPI backend and vanilla JavaScript frontend. Features a clean, responsive UI with real-time AI responses and multilingual support.
+A modern web-based chatbot application with a Python FastAPI backend and JavaScript frontend. Features a clean, responsive UI with real-time AI responses and multilingual support.
 
 ## Features
 
@@ -50,9 +50,13 @@ A modern web-based chatbot application with a Python FastAPI backend and vanilla
   - Voice recording status
   - Upload progress
   - Language selection status
-Screenshot 2025-04-01 041931.png
-Screenshot 2025-04-01 041940.png
-Screenshot 2025-04-01 042000.png
+  
+  ![Screenshot 2025-04-01 041931](https://github.com/user-attachments/assets/7af0d8d4-0206-48c4-9f18-d6147e326aa1)
+  ![Screenshot 2025-04-01 041940](https://github.com/user-attachments/assets/dbd9ee68-106b-491a-a947-a6280f1b1afb)
+  ![Screenshot 2025-04-01 042000](https://github.com/user-attachments/assets/8f308c07-047e-4022-9ff6-9e1d74da01b0)
+
+
+
 
 ### Backend Capabilities
 - 🤖 OpenAI GPT-3.5-turbo integration
